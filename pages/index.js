@@ -42,6 +42,10 @@ export default function Home() {
   useEffect(() => {
     if (authenticated && user?.wallet?.address && deployment && walletConnected) {
       loadAllData();
+      // Redirect to stake page after login
+      if (activeTab !== 'stake' && activeTab !== 'governance') {
+        setActiveTab('stake');
+      }
     }
   }, [authenticated, user, deployment, walletConnected]);
 
@@ -98,17 +102,16 @@ export default function Home() {
       
       const addr = accounts[0];
       
-      // Get native MON balance
-      const nativeBal = await publicClient.getBalance({ address: addr });
-      setNativeMonBalance(formatEther(nativeBal));
-      
-      const [cmon, staked, yield_, stake, count] = await Promise.all([
+      const [monBal, cmon, staked, yield_, stake, count] = await Promise.all([
+        publicClient.readContract({ address: '0x20aAc86058Bcb5329eF5D2bE6ddD986C7B8AFB2F', abi: CONTRACTS.CMONToken.abi, functionName: 'balanceOf', args: [addr] }),
         publicClient.readContract({ address: CONTRACTS.CMONToken.address, abi: CONTRACTS.CMONToken.abi, functionName: 'balanceOf', args: [addr] }),
         publicClient.readContract({ address: CONTRACTS.CMONStaking.address, abi: CONTRACTS.CMONStaking.abi, functionName: 'totalStaked' }),
         publicClient.readContract({ address: CONTRACTS.CMONStaking.address, abi: CONTRACTS.CMONStaking.abi, functionName: 'totalYieldGenerated' }),
         publicClient.readContract({ address: CONTRACTS.CMONStaking.address, abi: CONTRACTS.CMONStaking.abi, functionName: 'getStakeInfo', args: [addr] }),
         publicClient.readContract({ address: CONTRACTS.CMONGovernance.address, abi: CONTRACTS.CMONGovernance.abi, functionName: 'proposalCount' }),
       ]);
+      
+      setNativeMonBalance(formatEther(monBal));
 
       setCmonBalance(formatEther(cmon));
       setTotalStaked(formatEther(staked));
@@ -132,12 +135,21 @@ export default function Home() {
       const wc = await getWalletClient();
       const amt = parseEther(stakeAmount);
       
-      // Send native MON directly to stake function
+      // Approve MON token first
+      const approvehash = await wc.writeContract({
+        address: '0x20aAc86058Bcb5329eF5D2bE6ddD986C7B8AFB2F', // MON Token
+        abi: CONTRACTS.CMONToken.abi, // Use same ERC20 ABI
+        functionName: 'approve',
+        args: [CONTRACTS.CMONStaking.address, amt]
+      });
+      await publicClient.waitForTransactionReceipt({ hash: approvehash });
+      
+      // Then stake
       const hash = await wc.writeContract({
         address: CONTRACTS.CMONStaking.address,
         abi: CONTRACTS.CMONStaking.abi,
         functionName: 'stake',
-        value: amt // Send native MON
+        args: [amt]
       });
       
       await publicClient.waitForTransactionReceipt({ hash });
@@ -289,7 +301,7 @@ export default function Home() {
                   Stake your MON. Keep your principal safe. All yield generated goes directly to charitable causes voted by the community.
                 </p>
                 <button 
-                  onClick={login} 
+                  onClick={() => { setActiveTab('stake'); login(); }} 
                   className="bg-[#238636] hover:bg-[#2ea043] text-white font-bold px-8 py-4 rounded-xl text-lg transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2"
                 >
                   <span>Start Giving Back</span>
