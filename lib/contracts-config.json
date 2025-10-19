@@ -417,7 +417,7 @@
     ]
   },
   "CMONToken": {
-    "address": "0x7E99B1A9e2bDB613282Bfe5C319cb114c89A953B",
+    "address": "0xBeb007Bd4f059F0D514bA93529FBDec88EA581F3",
     "abi": [
       {
         "inputs": [],
@@ -916,7 +916,7 @@
     ]
   },
   "CMONStaking": {
-    "address": "0x19e7d714De1ec014618593Ab9C288dc1F3c1bdf8",
+    "address": "0x6Df1e508c4eb61b04eb9c364Bc1a42406FEf1a63",
     "abi": [
       {
         "inputs": [
@@ -1402,7 +1402,7 @@
     ]
   },
   "CMONGovernance": {
-    "address": "0xDD547f483F1CAD299f0B6403d0E6FA29c3255147",
+    "address": "0x94a38c15Ff1728112660D98e41C71B767b8314BE",
     "abi": [
       {
         "inputs": [

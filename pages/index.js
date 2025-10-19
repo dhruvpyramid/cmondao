@@ -102,16 +102,17 @@ export default function Home() {
       
       const addr = accounts[0];
       
-      const [monBal, cmon, staked, yield_, stake, count] = await Promise.all([
-        publicClient.readContract({ address: '0x20aAc86058Bcb5329eF5D2bE6ddD986C7B8AFB2F', abi: CONTRACTS.CMONToken.abi, functionName: 'balanceOf', args: [addr] }),
+      // Get native MON balance
+      const nativeBal = await publicClient.getBalance({ address: addr });
+      setNativeMonBalance(formatEther(nativeBal));
+      
+      const [cmon, staked, yield_, stake, count] = await Promise.all([
         publicClient.readContract({ address: CONTRACTS.CMONToken.address, abi: CONTRACTS.CMONToken.abi, functionName: 'balanceOf', args: [addr] }),
         publicClient.readContract({ address: CONTRACTS.CMONStaking.address, abi: CONTRACTS.CMONStaking.abi, functionName: 'totalStaked' }),
         publicClient.readContract({ address: CONTRACTS.CMONStaking.address, abi: CONTRACTS.CMONStaking.abi, functionName: 'totalYieldGenerated' }),
         publicClient.readContract({ address: CONTRACTS.CMONStaking.address, abi: CONTRACTS.CMONStaking.abi, functionName: 'getStakeInfo', args: [addr] }),
         publicClient.readContract({ address: CONTRACTS.CMONGovernance.address, abi: CONTRACTS.CMONGovernance.abi, functionName: 'proposalCount' }),
       ]);
-      
-      setNativeMonBalance(formatEther(monBal));
 
       setCmonBalance(formatEther(cmon));
       setTotalStaked(formatEther(staked));
@@ -135,21 +136,12 @@ export default function Home() {
       const wc = await getWalletClient();
       const amt = parseEther(stakeAmount);
       
-      // Approve MON token first
-      const approvehash = await wc.writeContract({
-        address: '0x20aAc86058Bcb5329eF5D2bE6ddD986C7B8AFB2F', // MON Token
-        abi: CONTRACTS.CMONToken.abi, // Use same ERC20 ABI
-        functionName: 'approve',
-        args: [CONTRACTS.CMONStaking.address, amt]
-      });
-      await publicClient.waitForTransactionReceipt({ hash: approvehash });
-      
-      // Then stake
+      // Stake with NATIVE MON
       const hash = await wc.writeContract({
         address: CONTRACTS.CMONStaking.address,
         abi: CONTRACTS.CMONStaking.abi,
         functionName: 'stake',
-        args: [amt]
+        value: amt // Send native MON
       });
       
       await publicClient.waitForTransactionReceipt({ hash });
