@@ -24,6 +24,7 @@ export default function Home() {
   const [proposals, setProposals] = useState([]);
   const [demoVotes, setDemoVotes] = useState({});
   const [votingPowerUsed, setVotingPowerUsed] = useState(0);
+  const [voteAmounts, setVoteAmounts] = useState({});
   
   const [loading, setLoading] = useState(false);
   const [stakeAmount, setStakeAmount] = useState('');
@@ -496,54 +497,51 @@ export default function Home() {
               <h2 className="text-2xl font-bold mb-6">Active Charity Proposals</h2>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {DEMO_PROPOSALS.map((d, i) => {
-                  const [voteAmount, setVoteAmount] = React.useState('');
-                  return (
-                    <div key={i} className="card card-hover p-6 animate-fadeIn" style={{animationDelay: `${i * 0.1}s`}}>
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="badge badge-success">Active</span>
-                            <span className="badge badge-info">{d.amount} MON</span>
-                          </div>
-                          <h3 className="text-xl font-bold mb-2">{d.title}</h3>
-                          <p className="text-sm text-gray-400 leading-relaxed">{d.description}</p>
+                {DEMO_PROPOSALS.map((d, i) => (
+                  <div key={i} className="card card-hover p-6 animate-fadeIn" style={{animationDelay: `${i * 0.1}s`}}>
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="badge badge-success">Active</span>
+                          <span className="badge badge-info">{d.amount} MON</span>
                         </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3 mb-4">
-                        <div className="bg-[#238636]/10 border border-[#238636]/30 rounded-lg p-3">
-                          <div className="text-2xl font-bold text-[#3fb950]">{demoVotes[i]?.for?.toFixed(0) || 0}</div>
-                          <div className="text-xs text-gray-400 mt-1 font-medium">For</div>
-                        </div>
-                        <div className="bg-[#da3633]/10 border border-[#da3633]/30 rounded-lg p-3">
-                          <div className="text-2xl font-bold text-[#f85149]">{demoVotes[i]?.against?.toFixed(0) || 0}</div>
-                          <div className="text-xs text-gray-400 mt-1 font-medium">Against</div>
-                        </div>
-                      </div>
-
-                      <div className="mb-3">
-                        <label className="text-xs text-gray-400 font-medium mb-2 block">Vote Amount (CMON)</label>
-                        <input
-                          type="number"
-                          value={voteAmount}
-                          onChange={(e) => setVoteAmount(e.target.value)}
-                          placeholder="0.0"
-                          className="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-[#58a6ff] focus:outline-none"
-                        />
-                      </div>
-
-                      <div className="flex gap-3">
-                        <button onClick={() => { handleDemoVote(i, true, voteAmount); setVoteAmount(''); }} disabled={loading} className="flex-1 py-2.5 bg-[#238636] hover:bg-[#2ea043] rounded-lg font-semibold text-sm transition disabled:opacity-50">
-                          Vote For
-                        </button>
-                        <button onClick={() => { handleDemoVote(i, false, voteAmount); setVoteAmount(''); }} disabled={loading} className="flex-1 py-2.5 bg-[#da3633] hover:bg-[#f85149] rounded-lg font-semibold text-sm transition disabled:opacity-50">
-                          Vote Against
-                        </button>
+                        <h3 className="text-xl font-bold mb-2">{d.title}</h3>
+                        <p className="text-sm text-gray-400 leading-relaxed">{d.description}</p>
                       </div>
                     </div>
-                  );
-                })}
+
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-[#238636]/10 border border-[#238636]/30 rounded-lg p-3">
+                        <div className="text-2xl font-bold text-[#3fb950]">{demoVotes[i]?.for?.toFixed(0) || 0}</div>
+                        <div className="text-xs text-gray-400 mt-1 font-medium">For</div>
+                      </div>
+                      <div className="bg-[#da3633]/10 border border-[#da3633]/30 rounded-lg p-3">
+                        <div className="text-2xl font-bold text-[#f85149]">{demoVotes[i]?.against?.toFixed(0) || 0}</div>
+                        <div className="text-xs text-gray-400 mt-1 font-medium">Against</div>
+                      </div>
+                    </div>
+
+                    <div className="mb-3">
+                      <label className="text-xs text-gray-400 font-medium mb-2 block">Vote Amount (CMON)</label>
+                      <input
+                        type="number"
+                        value={voteAmounts[i] || ''}
+                        onChange={(e) => setVoteAmounts({...voteAmounts, [i]: e.target.value})}
+                        placeholder="0.0"
+                        className="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-[#58a6ff] focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button onClick={() => { handleDemoVote(i, true, voteAmounts[i]); setVoteAmounts({...voteAmounts, [i]: ''}); }} disabled={loading} className="flex-1 py-2.5 bg-[#238636] hover:bg-[#2ea043] rounded-lg font-semibold text-sm transition disabled:opacity-50">
+                        Vote For
+                      </button>
+                      <button onClick={() => { handleDemoVote(i, false, voteAmounts[i]); setVoteAmounts({...voteAmounts, [i]: ''}); }} disabled={loading} className="flex-1 py-2.5 bg-[#da3633] hover:bg-[#f85149] rounded-lg font-semibold text-sm transition disabled:opacity-50">
+                        Vote Against
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {proposals.length > 0 && (
