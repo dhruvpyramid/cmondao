@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+p, span, div {
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  @apply bg-[#0d1117] text-white;
+  min-height: 100vh;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1c2128;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Custom Utilities */
+.card {
+  @apply bg-[#161b22] border border-[#30363d] rounded-xl;
+}
+
+.card-hover {
+  @apply transition-all duration-200 hover:border-[#58a6ff]/50 hover:shadow-lg hover:shadow-[#58a6ff]/10;
+}
+
+.btn-primary {
+  @apply bg-[#238636] hover:bg-[#2ea043] text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200;
+}
+
+.btn-secondary {
+  @apply bg-[#21262d] hover:bg-[#30363d] text-white font-semibold px-6 py-3 rounded-lg transition-all duration-200 border border-[#30363d];
+}
+
+.input-field {
+  @apply bg-[#0d1117] border border-[#30363d] rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#58a6ff] transition-colors;
+}
+
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium;
+}
+
+.badge-success {
+  @apply bg-[#238636]/20 text-[#3fb950] border border-[#238636]/30;
+}
+
+.badge-warning {
+  @apply bg-[#9e6a03]/20 text-[#d29922] border border-[#9e6a03]/30;
+}
+
+.badge-info {
+  @apply bg-[#0969da]/20 text-[#58a6ff] border border-[#0969da]/30;
+}
+
+/* Number animations */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-number {
+  animation: countUp 0.5s ease-out;
+}
