@@ -23,6 +23,7 @@ export default function Home() {
   const [stakeInfo, setStakeInfo] = useState(null);
   const [proposals, setProposals] = useState([]);
   const [demoVotes, setDemoVotes] = useState({});
+  const [votingPowerUsed, setVotingPowerUsed] = useState(0);
   
   const [loading, setLoading] = useState(false);
   const [stakeAmount, setStakeAmount] = useState('');
@@ -182,10 +183,28 @@ export default function Home() {
     }
   };
 
-  const handleDemoVote = (proposalIndex, support) => {
-    const votingPower = parseFloat(cmonBalance);
-    if (votingPower === 0) {
+  const handleDemoVote = (proposalIndex, support, voteAmount) => {
+    const totalVotingPower = parseFloat(cmonBalance);
+    const remainingPower = totalVotingPower - votingPowerUsed;
+    
+    if (totalVotingPower === 0) {
       alert('❌ You need CMON to vote! Stake MON first to get voting power.');
+      return;
+    }
+
+    if (remainingPower <= 0) {
+      alert('❌ No voting power left! You\'ve used all your CMON.');
+      return;
+    }
+
+    const amount = parseFloat(voteAmount);
+    if (!amount || amount <= 0) {
+      alert('❌ Please enter a valid amount!');
+      return;
+    }
+
+    if (amount > remainingPower) {
+      alert(`❌ Not enough voting power! You have ${remainingPower.toFixed(2)} CMON remaining.`);
       return;
     }
 
@@ -195,14 +214,15 @@ export default function Home() {
         newVotes[proposalIndex] = { for: 0, against: 0 };
       }
       if (support) {
-        newVotes[proposalIndex].for += votingPower;
+        newVotes[proposalIndex].for += amount;
       } else {
-        newVotes[proposalIndex].against += votingPower;
+        newVotes[proposalIndex].against += amount;
       }
       return newVotes;
     });
     
-    alert(`✅ Voted with ${votingPower.toFixed(2)} CMON!`);
+    setVotingPowerUsed(prev => prev + amount);
+    alert(`✅ Voted with ${amount.toFixed(2)} CMON! Remaining: ${(remainingPower - amount).toFixed(2)}`);
   };
 
   if (!ready || !deployment) {
@@ -455,63 +475,75 @@ export default function Home() {
           )}
 
           {activeTab === 'governance' && (
-            <div className="bg-[#0d1117] border border-[#30363d] rounded-3xl p-8">
-              <div className="mb-10">
-                <h2 className="text-4xl font-bold mb-3 tracking-tight">Community Governance</h2>
-                <p className="text-lg text-gray-400">Vote with your CMON to decide which charities receive the generated yield. Your voice shapes our impact.</p>
+            <div>
+              {/* Voting Power Card */}
+              <div className="card p-6 mb-8 animate-fadeIn">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold mb-1">Your Voting Power</h3>
+                    <p className="text-sm text-gray-400">Distribute your CMON across proposals</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold stat-number">{(parseFloat(cmonBalance) - votingPowerUsed).toFixed(2)}</div>
+                    <div className="text-xs text-gray-500 mt-1">of {parseFloat(cmonBalance).toFixed(2)} CMON available</div>
+                  </div>
+                </div>
+                <div className="mt-4 bg-[#0d1117] rounded-full h-2 overflow-hidden">
+                  <div className="bg-gradient-to-r from-[#3fb950] to-[#58a6ff] h-full transition-all" style={{width: `${parseFloat(cmonBalance) > 0 ? ((parseFloat(cmonBalance) - votingPowerUsed) / parseFloat(cmonBalance)) * 100 : 0}%`}}></div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {DEMO_PROPOSALS.map((d, i) => (
-                  <div key={i} className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#238636]/20 to-[#58a6ff]/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    <div className="relative card p-6 hover:border-[#238636]/50 transition-all">
+              <h2 className="text-2xl font-bold mb-6">Active Charity Proposals</h2>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {DEMO_PROPOSALS.map((d, i) => {
+                  const [voteAmount, setVoteAmount] = React.useState('');
+                  return (
+                    <div key={i} className="card card-hover p-6 animate-fadeIn" style={{animationDelay: `${i * 0.1}s`}}>
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
-                            <div className="w-2 h-2 rounded-full bg-[#3fb950]"></div>
-                            <span className="text-xs font-semibold text-[#3fb950] uppercase tracking-wide">Active</span>
+                            <span className="badge badge-success">Active</span>
+                            <span className="badge badge-info">{d.amount} MON</span>
                           </div>
-                          <h3 className="text-xl font-bold mb-2 tracking-tight">{d.title}</h3>
+                          <h3 className="text-xl font-bold mb-2">{d.title}</h3>
                           <p className="text-sm text-gray-400 leading-relaxed">{d.description}</p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 mb-4 py-3 px-4 bg-[#238636]/10 border border-[#238636]/20 rounded-xl">
-                        <svg className="w-5 h-5 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div className="flex-1">
-                          <div className="text-xs text-gray-400 font-medium">Funding Request</div>
-                          <div className="text-lg font-bold text-[#3fb950]">{d.amount} MON</div>
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="bg-[#238636]/10 border border-[#238636]/30 rounded-lg p-3">
+                          <div className="text-2xl font-bold text-[#3fb950]">{demoVotes[i]?.for?.toFixed(0) || 0}</div>
+                          <div className="text-xs text-gray-400 mt-1 font-medium">For</div>
+                        </div>
+                        <div className="bg-[#da3633]/10 border border-[#da3633]/30 rounded-lg p-3">
+                          <div className="text-2xl font-bold text-[#f85149]">{demoVotes[i]?.against?.toFixed(0) || 0}</div>
+                          <div className="text-xs text-gray-400 mt-1 font-medium">Against</div>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 mb-4">
-                        <div className="text-center py-3 bg-[#0d1117] rounded-lg border border-[#30363d]">
-                          <div className="text-2xl font-bold text-[#3fb950]">{demoVotes[i]?.for?.toFixed(0) || 0}</div>
-                          <div className="text-xs text-gray-500 mt-1">CMON For</div>
-                        </div>
-                        <div className="text-center py-3 bg-[#0d1117] rounded-lg border border-[#30363d]">
-                          <div className="text-2xl font-bold text-[#f85149]">{demoVotes[i]?.against?.toFixed(0) || 0}</div>
-                          <div className="text-xs text-gray-500 mt-1">CMON Against</div>
-                        </div>
+                      <div className="mb-3">
+                        <label className="text-xs text-gray-400 font-medium mb-2 block">Vote Amount (CMON)</label>
+                        <input
+                          type="number"
+                          value={voteAmount}
+                          onChange={(e) => setVoteAmount(e.target.value)}
+                          placeholder="0.0"
+                          className="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:border-[#58a6ff] focus:outline-none"
+                        />
                       </div>
 
                       <div className="flex gap-3">
-                        <button onClick={() => handleDemoVote(i, true)} disabled={loading} className="flex-1 py-3 bg-[#238636] hover:bg-[#2ea043] rounded-xl font-semibold text-sm transition disabled:opacity-50 flex items-center justify-center gap-2">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          Support
+                        <button onClick={() => { handleDemoVote(i, true, voteAmount); setVoteAmount(''); }} disabled={loading} className="flex-1 py-2.5 bg-[#238636] hover:bg-[#2ea043] rounded-lg font-semibold text-sm transition disabled:opacity-50">
+                          Vote For
                         </button>
-                        <button onClick={() => handleDemoVote(i, false)} disabled={loading} className="px-6 py-3 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-xl font-semibold text-sm transition disabled:opacity-50">
-                          Pass
+                        <button onClick={() => { handleDemoVote(i, false, voteAmount); setVoteAmount(''); }} disabled={loading} className="flex-1 py-2.5 bg-[#da3633] hover:bg-[#f85149] rounded-lg font-semibold text-sm transition disabled:opacity-50">
+                          Vote Against
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {proposals.length > 0 && (
