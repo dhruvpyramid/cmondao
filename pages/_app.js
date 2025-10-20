@@ -55,7 +55,7 @@ function MyApp({ Component, pageProps }) {
             public: { http: ['https://rpc.ankr.com/monad_testnet'] },
           },
           blockExplorers: {
-            default: { name: 'Monad Explorer', url: 'https://explorer.testnet.monad.xyz' },
+            default: { name: 'Monad Explorer', url: 'https://testnet.monadexplorer.com' },
           },
           testnet: true,
         },
@@ -73,7 +73,7 @@ function MyApp({ Component, pageProps }) {
             public: { http: ['https://rpc.ankr.com/monad_testnet'] },
           },
           blockExplorers: {
-            default: { name: 'Monad Explorer', url: 'https://explorer.testnet.monad.xyz' },
+            default: { name: 'Monad Explorer', url: 'https://testnet.monadexplorer.com' },
           },
           testnet: true,
         }],

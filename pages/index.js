@@ -17,7 +17,7 @@ export default function Home() {
   const [deployment, setDeployment] = useState(null);
   const [walletConnected, setWalletConnected] = useState(false);
   
-  const EXPLORER_URL = 'https://explorer.testnet.monad.xyz';
+  const EXPLORER_URL = 'https://testnet.monadexplorer.com';
   
   const showTxToast = (hash, message) => {
     toast.success(
@@ -114,7 +114,7 @@ export default function Home() {
               chainName: 'Monad Testnet',
               nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
               rpcUrls: ['https://rpc.ankr.com/monad_testnet'],
-              blockExplorerUrls: ['https://explorer.testnet.monad.xyz']
+              blockExplorerUrls: ['https://testnet.monadexplorer.com']
             }]
           });
         } catch (addError) {
@@ -589,14 +589,20 @@ export default function Home() {
                     </div>
 
                     {stakeInfo.inCooldown && stakeInfo.cooldownRemaining > 0 ? (
-                      <div className="bg-[#9e6a03]/10 border border-[#9e6a03]/30 rounded-lg p-4">
-                        <div className="text-sm font-medium text-[#d29922] mb-2">Cooldown Period</div>
-                        <div className="text-xs text-gray-400 mb-3">{Math.floor(stakeInfo.cooldownRemaining / 86400)}d {Math.floor((stakeInfo.cooldownRemaining % 86400) / 3600)}h remaining</div>
-                        <div className="w-full bg-[#21262d] rounded-full h-1.5 mb-3">
-                          <div className="bg-[#d29922] h-1.5 rounded-full" style={{width: `${((604800 - stakeInfo.cooldownRemaining) / 604800) * 100}%`}}></div>
+                      <div className="bg-[#0d1117] border border-[#30363d] rounded-lg p-5">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-[#d29922]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span className="text-sm font-semibold text-white">Cooldown Period</span>
+                          </div>
+                          <span className="badge badge-warning">{Math.floor(stakeInfo.cooldownRemaining / 86400)}d {Math.floor((stakeInfo.cooldownRemaining % 86400) / 3600)}h left</span>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          💡 You can withdraw your MON once the cooldown completes
+                        <div className="w-full bg-[#21262d] rounded-full h-2 mb-3 overflow-hidden">
+                          <div className="bg-gradient-to-r from-[#d29922] to-[#f59e0b] h-2 rounded-full transition-all" style={{width: `${((604800 - stakeInfo.cooldownRemaining) / 604800) * 100}%`}}></div>
+                        </div>
+                        <div className="flex items-start gap-2 text-xs text-gray-400">
+                          <svg className="w-4 h-4 text-[#58a6ff] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          <span>You can withdraw your MON once the cooldown period completes. Check back in {Math.floor(stakeInfo.cooldownRemaining / 86400)} days!</span>
                         </div>
                       </div>
                     ) : stakeInfo.inCooldown && stakeInfo.cooldownRemaining === 0 ? (
