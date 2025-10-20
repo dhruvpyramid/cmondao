@@ -148,6 +148,10 @@ export default function Home() {
   const handleStake = async () => {
     try {
       setLoading(true);
+      
+      // Switch to Monad BEFORE transaction
+      await switchToMonad();
+      
       const wc = await getWalletClient();
       const amt = parseEther(stakeAmount);
       
@@ -174,6 +178,7 @@ export default function Home() {
   const handleVote = async (id, support) => {
     try {
       setLoading(true);
+      await switchToMonad();
       const wc = await getWalletClient();
       const hash = await wc.writeContract({ address: CONTRACTS.CMONGovernance.address, abi: CONTRACTS.CMONGovernance.abi, functionName: 'castVote', args: [id, support] });
       await publicClient.waitForTransactionReceipt({ hash });
