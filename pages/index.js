@@ -228,6 +228,59 @@ export default function Home() {
     }
   };
 
+  const handleInitiateCooldown = async () => {
+    try {
+      setLoading(true);
+      await switchToMonad();
+      toast.loading('Initiating cooldown...');
+      const wc = await getWalletClient();
+      const hash = await wc.writeContract({ 
+        address: CONTRACTS.CMONStaking.address, 
+        abi: CONTRACTS.CMONStaking.abi, 
+        functionName: 'initiateCooldown' 
+      });
+      toast.dismiss();
+      toast.loading('Confirming...');
+      await publicClient.waitForTransactionReceipt({ hash });
+      await loadAllData();
+      toast.dismiss();
+      showTxToast(hash, '✅ Cooldown started! You can withdraw in 7 days.');
+    } catch (err) {
+      console.error(err);
+      toast.dismiss();
+      toast.error(err.message || 'Failed to initiate cooldown');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWithdraw = async () => {
+    try {
+      setLoading(true);
+      await switchToMonad();
+      toast.loading('Withdrawing...');
+      const wc = await getWalletClient();
+      const hash = await wc.writeContract({ 
+        address: CONTRACTS.CMONStaking.address, 
+        abi: CONTRACTS.CMONStaking.abi, 
+        functionName: 'withdraw',
+        args: [parseEther(stakeInfo.amount)]
+      });
+      toast.dismiss();
+      toast.loading('Confirming withdrawal...');
+      await publicClient.waitForTransactionReceipt({ hash });
+      await loadAllData();
+      toast.dismiss();
+      showTxToast(hash, `✅ Withdrew ${parseFloat(stakeInfo.amount).toFixed(2)} MON successfully!`);
+    } catch (err) {
+      console.error(err);
+      toast.dismiss();
+      toast.error(err.message || 'Withdrawal failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCreateDemo = async (demo) => {
     try {
       setLoading(true);
@@ -238,7 +291,7 @@ export default function Home() {
       alert('✅ Proposal created!');
     } catch (err) {
       console.error(err);
-      alert('❌ ' + (err.message || 'Transaction failed'));
+      alert('❌ ' + (err.message || 'Failed to create proposal'));
     } finally {
       setLoading(false);
     }
@@ -535,12 +588,41 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {stakeInfo.inCooldown && stakeInfo.cooldownRemaining > 0 && (
+                    {stakeInfo.inCooldown && stakeInfo.cooldownRemaining > 0 ? (
                       <div className="bg-[#9e6a03]/10 border border-[#9e6a03]/30 rounded-lg p-4">
                         <div className="text-sm font-medium text-[#d29922] mb-2">Cooldown Period</div>
-                        <div className="text-xs text-gray-400">{Math.floor(stakeInfo.cooldownRemaining / 86400)}d {Math.floor((stakeInfo.cooldownRemaining % 86400) / 3600)}h remaining</div>
-                        <div className="w-full bg-[#21262d] rounded-full h-1.5 mt-2">
+                        <div className="text-xs text-gray-400 mb-3">{Math.floor(stakeInfo.cooldownRemaining / 86400)}d {Math.floor((stakeInfo.cooldownRemaining % 86400) / 3600)}h remaining</div>
+                        <div className="w-full bg-[#21262d] rounded-full h-1.5 mb-3">
                           <div className="bg-[#d29922] h-1.5 rounded-full" style={{width: `${((604800 - stakeInfo.cooldownRemaining) / 604800) * 100}%`}}></div>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          💡 You can withdraw your MON once the cooldown completes
+                        </div>
+                      </div>
+                    ) : stakeInfo.inCooldown && stakeInfo.cooldownRemaining === 0 ? (
+                      <button 
+                        onClick={handleWithdraw} 
+                        disabled={loading}
+                        className="w-full py-3 bg-[#3fb950] hover:bg-[#2ea043] rounded-lg font-semibold transition disabled:opacity-50"
+                      >
+                        Withdraw MON
+                      </button>
+                    ) : (
+                      <div className="space-y-3">
+                        <button 
+                          onClick={handleInitiateCooldown} 
+                          disabled={loading}
+                          className="w-full py-3 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg font-semibold transition disabled:opacity-50"
+                        >
+                          Initiate Cooldown to Unstake
+                        </button>
+                        <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-3">
+                          <div className="flex items-start gap-2">
+                            <svg className="w-4 h-4 text-[#58a6ff] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <div className="text-xs text-gray-400">
+                              <span className="font-semibold text-white">How unstaking works:</span> Start the 7-day cooldown period to withdraw your MON. During cooldown, you'll continue earning yield for charity. After 7 days, you can withdraw anytime.
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
