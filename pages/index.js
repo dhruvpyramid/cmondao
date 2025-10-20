@@ -71,6 +71,33 @@ export default function Home() {
     }
   };
 
+  const switchToMonad = async () => {
+    try {
+      await window.ethereum.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x279F' }], // 10143 in hex
+      });
+    } catch (switchError) {
+      // Chain not added, add it
+      if (switchError.code === 4902) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x279F',
+              chainName: 'Monad Testnet',
+              nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
+              rpcUrls: ['https://rpc.ankr.com/monad_testnet'],
+              blockExplorerUrls: ['https://explorer.testnet.monad.xyz']
+            }]
+          });
+        } catch (addError) {
+          console.error('Failed to add network:', addError);
+        }
+      }
+    }
+  };
+
   const getWalletClient = async () => {
     const accounts = await window.ethereum.request({ method: 'eth_accounts' });
     return createWalletClient({
@@ -238,7 +265,12 @@ export default function Home() {
               )}
             </nav>
             {!authenticated || !walletConnected ? (
-              <button onClick={authenticated ? connectAndVerify : login} disabled={loading} className="bg-[#238636] hover:bg-[#2ea043] text-white font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50">
+              <button onClick={async () => {
+                if (window.ethereum && !authenticated) {
+                  await switchToMonad();
+                }
+                authenticated ? connectAndVerify() : login();
+              }} disabled={loading} className="bg-[#238636] hover:bg-[#2ea043] text-white font-semibold px-5 py-2.5 rounded-lg transition disabled:opacity-50">
                 {loading ? 'Connecting...' : authenticated ? 'Sign to Connect' : 'Connect wallet'}
               </button>
             ) : (
@@ -278,7 +310,13 @@ export default function Home() {
                   Stake your MON. Keep your principal safe. All yield generated goes directly to charitable causes voted by the community.
                 </p>
                 <button 
-                  onClick={() => { setActiveTab('stake'); login(); }} 
+                  onClick={async () => { 
+                    setActiveTab('stake'); 
+                    if (window.ethereum) {
+                      await switchToMonad();
+                    }
+                    login(); 
+                  }} 
                   className="bg-[#238636] hover:bg-[#2ea043] text-white font-bold px-8 py-4 rounded-xl text-lg transition-all shadow-lg hover:shadow-xl inline-flex items-center gap-2"
                 >
                   <span>Start Giving Back</span>
