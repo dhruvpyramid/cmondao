@@ -72,10 +72,13 @@ export default function Home() {
   };
 
   const switchToMonad = async () => {
+    const MONAD_CHAIN_ID = 10143;
+    const chainIdHex = `0x${MONAD_CHAIN_ID.toString(16)}`; // Convert to hex for wallet API
+    
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x279F' }], // 10143 in hex
+        params: [{ chainId: chainIdHex }],
       });
     } catch (switchError) {
       // Chain not added, add it
@@ -84,7 +87,7 @@ export default function Home() {
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [{
-              chainId: '0x279F',
+              chainId: chainIdHex,
               chainName: 'Monad Testnet',
               nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
               rpcUrls: ['https://rpc.ankr.com/monad_testnet'],
