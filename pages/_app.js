@@ -25,11 +25,11 @@ function MyApp({ Component, pageProps }) {
             symbol: 'MON',
           },
           rpcUrls: {
-            default: { http: ['https://testnet-rpc.monad.xyz'] },
-            public: { http: ['https://testnet-rpc.monad.xyz'] },
+            default: { http: ['https://rpc.ankr.com/monad_testnet'] },
+            public: { http: ['https://rpc.ankr.com/monad_testnet'] },
           },
           blockExplorers: {
-            default: { name: 'Monad Explorer', url: 'https://testnet.monadexplorer.com' },
+            default: { name: 'Monad Explorer', url: 'https://explorer.testnet.monad.xyz' },
           },
           testnet: true,
         },
@@ -43,11 +43,11 @@ function MyApp({ Component, pageProps }) {
             symbol: 'MON',
           },
           rpcUrls: {
-            default: { http: ['https://testnet-rpc.monad.xyz'] },
-            public: { http: ['https://testnet-rpc.monad.xyz'] },
+            default: { http: ['https://rpc.ankr.com/monad_testnet'] },
+            public: { http: ['https://rpc.ankr.com/monad_testnet'] },
           },
           blockExplorers: {
-            default: { name: 'Monad Explorer', url: 'https://testnet.monadexplorer.com' },
+            default: { name: 'Monad Explorer', url: 'https://explorer.testnet.monad.xyz' },
           },
           testnet: true,
         }],
