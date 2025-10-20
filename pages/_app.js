@@ -1,9 +1,35 @@
 import '../styles/globals.css';
 import { PrivyProvider } from '@privy-io/react-auth';
+import { Toaster } from 'react-hot-toast';
 
 function MyApp({ Component, pageProps }) {
   return (
-    <PrivyProvider
+    <>
+      <Toaster 
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: '#161b22',
+            color: '#fff',
+            border: '1px solid #30363d',
+            borderRadius: '12px',
+            padding: '16px',
+          },
+          success: {
+            iconTheme: {
+              primary: '#3fb950',
+              secondary: '#161b22',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#f85149',
+              secondary: '#161b22',
+            },
+          },
+        }}
+      />
+      <PrivyProvider
       appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID}
       config={{
         loginMethods: ['wallet'],
@@ -55,6 +81,7 @@ function MyApp({ Component, pageProps }) {
     >
       <Component {...pageProps} />
     </PrivyProvider>
+    </>
   );
 }
 

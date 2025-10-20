@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { createPublicClient, createWalletClient, custom, http, formatEther, parseEther } from 'viem';
 import { CONTRACTS, loadDeployedAddresses, YIELD_ALLOCATIONS, getWeightedAPR, DEMO_PROPOSALS } from '../lib/contracts';
+import toast from 'react-hot-toast';
 
 const monadTestnet = {
   id: 10143,
@@ -16,6 +17,28 @@ export default function Home() {
   const [deployment, setDeployment] = useState(null);
   const [walletConnected, setWalletConnected] = useState(false);
   
+  const EXPLORER_URL = 'https://explorer.testnet.monad.xyz';
+  
+  const showTxToast = (hash, message) => {
+    toast.success(
+      <div className="flex flex-col gap-2">
+        <span className="font-semibold">{message}</span>
+        <a 
+          href={`${EXPLORER_URL}/tx/${hash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#58a6ff] hover:underline text-sm flex items-center gap-1"
+        >
+          View on Explorer
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>,
+      { duration: 6000 }
+    );
+  };
+
   const [nativeMonBalance, setNativeMonBalance] = useState('0');
   const [cmonBalance, setCmonBalance] = useState('0');
   const [totalStaked, setTotalStaked] = useState('0');
@@ -152,6 +175,8 @@ export default function Home() {
       // Switch to Monad BEFORE transaction
       await switchToMonad();
       
+      toast.loading('Submitting transaction...');
+      
       const wc = await getWalletClient();
       const amt = parseEther(stakeAmount);
       
@@ -163,13 +188,19 @@ export default function Home() {
         value: amt // Send native MON
       });
       
+      toast.dismiss();
+      toast.loading('Confirming transaction...');
+      
       await publicClient.waitForTransactionReceipt({ hash });
       await loadAllData();
       setStakeAmount('');
-      alert('✅ Staked successfully!');
+      
+      toast.dismiss();
+      showTxToast(hash, `✅ Staked ${stakeAmount} MON successfully!`);
     } catch (err) {
       console.error(err);
-      alert('❌ ' + (err.message || 'Transaction failed'));
+      toast.dismiss();
+      toast.error(err.message || 'Transaction failed');
     } finally {
       setLoading(false);
     }
@@ -179,14 +210,19 @@ export default function Home() {
     try {
       setLoading(true);
       await switchToMonad();
+      toast.loading('Submitting vote...');
       const wc = await getWalletClient();
       const hash = await wc.writeContract({ address: CONTRACTS.CMONGovernance.address, abi: CONTRACTS.CMONGovernance.abi, functionName: 'castVote', args: [id, support] });
+      toast.dismiss();
+      toast.loading('Confirming vote...');
       await publicClient.waitForTransactionReceipt({ hash });
       await loadAllData();
-      alert('✅ Vote cast!');
+      toast.dismiss();
+      showTxToast(hash, '✅ Vote cast successfully!');
     } catch (err) {
       console.error(err);
-      alert('❌ ' + (err.message || 'Transaction failed'));
+      toast.dismiss();
+      toast.error(err.message || 'Vote failed');
     } finally {
       setLoading(false);
     }
@@ -386,10 +422,22 @@ export default function Home() {
             <div className="card card-hover p-5 animate-fadeIn" style={{animationDelay: '0.1s'}}>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm text-gray-400 font-medium">Treasury</span>
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <a 
+                  href={`${EXPLORER_URL}/address/${CONTRACTS.CMONStaking.address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#58a6ff] hover:text-[#79c0ff] transition"
+                  title="View contract on explorer"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
               </div>
               <div className="text-3xl font-bold stat-number">{parseFloat(totalStaked).toFixed(2)}</div>
               <div className="text-xs text-[#3fb950] mt-1 font-medium">Total Staked</div>
+              <div className="mt-2 pt-2 border-t border-[#30363d]">
+                <div className="text-xs text-gray-500 font-mono">{CONTRACTS.CMONStaking.address.slice(0, 6)}...{CONTRACTS.CMONStaking.address.slice(-4)}</div>
+                <div className="text-xs text-gray-600 mt-0.5">Staking Contract</div>
+              </div>
             </div>
 
             <div className="card card-hover p-5 animate-fadeIn cursor-pointer" style={{animationDelay: '0.2s'}} onClick={() => setShowAllocations(true)}>
