@@ -58,24 +58,22 @@ export default function Home() {
         return;
       }
 
-      // Switch to Monad testnet
-      await switchToMonad();
-
+      // Request accounts first
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      if (accounts && accounts.length > 0) {
-        setWalletConnected(true);
+      if (!accounts || accounts.length === 0) {
+        alert('No accounts found');
+        return;
       }
 
-      // Sign message to prove ownership
-      const message = `Sign this message to connect to CMON DAO\n\nTimestamp: ${Date.now()}`;
-      const signature = await window.ethereum.request({
-        method: 'personal_sign',
-        params: [message, accounts[0]],
-      });
-
-      if (signature) {
-        setWalletConnected(true);
+      // Then switch to Monad testnet
+      try {
+        await switchToMonad();
+      } catch (switchError) {
+        console.error('Network switch error:', switchError);
+        // Continue anyway - user might already be on Monad
       }
+
+      setWalletConnected(true);
     } catch (error) {
       console.error('Error connecting wallet:', error);
       alert('Failed to connect wallet: ' + error.message);
