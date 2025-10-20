@@ -58,22 +58,11 @@ export default function Home() {
         return;
       }
 
-      // Request accounts first
+      // Just request accounts - Privy handles network switching
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      if (!accounts || accounts.length === 0) {
-        alert('No accounts found');
-        return;
+      if (accounts && accounts.length > 0) {
+        setWalletConnected(true);
       }
-
-      // Then switch to Monad testnet
-      try {
-        await switchToMonad();
-      } catch (switchError) {
-        console.error('Network switch error:', switchError);
-        // Continue anyway - user might already be on Monad
-      }
-
-      setWalletConnected(true);
     } catch (error) {
       console.error('Error connecting wallet:', error);
       alert('Failed to connect wallet: ' + error.message);
@@ -87,35 +76,6 @@ export default function Home() {
       chain: monadTestnet,
       transport: custom(window.ethereum)
     });
-  };
-
-  const switchToMonad = async () => {
-    try {
-      await window.ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0x279F' }], // 10143 in hex
-      });
-    } catch (switchError) {
-      // Chain not added, add it
-      if (switchError.code === 4902) {
-        try {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0x279F',
-              chainName: 'Monad Testnet',
-              nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
-              rpcUrls: ['https://rpc.ankr.com/monad_testnet'],
-              blockExplorerUrls: ['https://explorer.testnet.monad.xyz']
-            }]
-          });
-        } catch (addError) {
-          throw addError;
-        }
-      } else {
-        throw switchError;
-      }
-    }
   };
 
   const loadAllData = async () => {
@@ -156,10 +116,6 @@ export default function Home() {
   const handleStake = async () => {
     try {
       setLoading(true);
-      
-      // Switch to Monad testnet first
-      await switchToMonad();
-      
       const wc = await getWalletClient();
       const amt = parseEther(stakeAmount);
       
@@ -186,7 +142,6 @@ export default function Home() {
   const handleVote = async (id, support) => {
     try {
       setLoading(true);
-      await switchToMonad();
       const wc = await getWalletClient();
       const hash = await wc.writeContract({ address: CONTRACTS.CMONGovernance.address, abi: CONTRACTS.CMONGovernance.abi, functionName: 'castVote', args: [id, support] });
       await publicClient.waitForTransactionReceipt({ hash });
