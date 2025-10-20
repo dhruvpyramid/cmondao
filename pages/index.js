@@ -72,7 +72,9 @@ export default function Home() {
   };
 
   const getWalletClient = async () => {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
     return createWalletClient({
+      account: accounts[0],
       chain: monadTestnet,
       transport: custom(window.ethereum)
     });
